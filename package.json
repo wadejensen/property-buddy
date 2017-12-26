@@ -1,5 +1,5 @@
 {
-  "name": "hello-node",
+  "name": "property-buddy",
   "version": "1.0.0",
   "description": "\"My first time playing with node in earnest.\"",
   "main": "lib/index.js",
@@ -11,7 +11,7 @@
     "start": "nodemon lib/index.js --exec babel-node --presets es2015,stage-2",
     "build": "babel lib -d dist --presets es2015,stage-2",
     "serve": "node dist/index.js",
-    "debug": "nodemon lib/index.js --exec babel-node --presets es2015,stage-2 --debug-brk"
+    "debug": "nodemon lib/index.js --exec babel-node --presets es2015,stage-2 --inspect-brk"
   },
   "author": "wadejensen",
   "license": "Apache-2.0",
@@ -26,6 +26,7 @@
     "http-server": "^0.10.0",
     "node-fetch": "^1.7.3",
     "nodemon": "^1.12.5",
+    "request-promise": "^4.2.2",
     "xml2js": "^0.4.19"
   }
 }
