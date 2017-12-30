@@ -1,7 +1,7 @@
 {
   "name": "property-buddy",
   "version": "1.0.0",
-  "description": "\"My first time playing with node in earnest.\"",
+  "description": "\"Trying to get node and typescript working. Much easier than babel so far.\"",
   "main": "lib/index.js",
   "directories": {
     "lib": "lib",
@@ -11,11 +11,14 @@
     "start": "nodemon lib/index.js --exec babel-node --presets es2015,stage-2",
     "build": "babel lib -d dist --presets es2015,stage-2",
     "serve": "node dist/index.js",
-    "debug": "nodemon lib/index.js --exec babel-node --presets es2015,stage-2 --inspect-brk"
+    "debug": "nodemon lib/index.js --exec babel-node --presets es2015,stage-2 --inspect-brk",
+    "debug-ts": "nodemon --exec ts-node -- ./lib/index.ts --inspect-brk --port 9229"
   },
   "author": "wadejensen",
   "license": "Apache-2.0",
   "dependencies": {
+    "@types/express": "^4.11.0",
+    "@types/node": "^8.5.2",
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.0",
     "babel-loader": "^7.1.2",
@@ -28,6 +31,9 @@
     "node-fetch": "^1.7.3",
     "nodemon": "^1.12.5",
     "request-promise": "^4.2.2",
+    "ts-node": "^4.1.0",
+    "typescript": "^2.6.2",
     "xml2js": "^0.4.19"
-  }
+  },
+  "devDependencies": {}
 }
