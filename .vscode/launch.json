@@ -5,21 +5,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch via NPM",
+            "name": "debug",
             "type": "node",
             "request": "launch",
-            "cwd": "${workspaceRoot}",
-            "runtimeExecutable": "npm",
-            "runtimeArgs": [
-                "run-script", "debug"
-            ],
-            "port": 9229
-        },
-        {
-            "name": "Launch TS via NPM",
-            "type": "node",
-            "request": "launch",
-            "args": ["${relativeFile}"],
+            "args": ["${workspaceRoot}/lib/index.ts"],
             "runtimeArgs": ["--nolazy", "-r", "ts-node/register"],
             "sourceMaps": true,
             "cwd": "${workspaceRoot}",

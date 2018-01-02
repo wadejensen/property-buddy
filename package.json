@@ -9,7 +9,7 @@
   },
   "scripts": {
     "start": "nodemon lib/index.js --exec babel-node --presets es2015,stage-2",
-    "build": "babel lib -d dist --presets es2015,stage-2",
+    "build": "tsc -p ./lib",
     "serve": "node dist/index.js",
     "debug": "nodemon lib/index.js --exec babel-node --presets es2015,stage-2 --inspect-brk",
     "debug-ts": "nodemon --exec ts-node -- ./lib/index.ts --inspect-brk --port 9229"
@@ -17,8 +17,11 @@
   "author": "wadejensen",
   "license": "Apache-2.0",
   "dependencies": {
+    "@types/es6-promise": "0.0.33",
     "@types/express": "^4.11.0",
     "@types/node": "^8.5.2",
+    "@types/node-fetch": "^1.6.7",
+    "@types/xml2js": "^0.4.2",
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.0",
     "babel-loader": "^7.1.2",
@@ -29,11 +32,15 @@
     "http-server": "^0.10.0",
     "mongoose": "^5.0.0-rc0",
     "node-fetch": "^1.7.3",
-    "nodemon": "^1.12.5",
+    "nodemon": "^1.14.7",
     "request-promise": "^4.2.2",
     "ts-node": "^4.1.0",
+    "ts-promise": "^1.0.0",
+    "typed-promisify": "^0.4.0",
     "typescript": "^2.6.2",
     "xml2js": "^0.4.19"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@types/es6-shim": "^0.31.35"
+  }
 }
