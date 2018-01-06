@@ -2,17 +2,27 @@
 import fetch, { Response, Headers } from "node-fetch"
 import {promisify} from 'typed-promisify'
 import * as xmljs from "xml2js"
-import { Script } from "vm";
+
+import {format} from "util"
+
+import { JsonConvert, ValueCheckingMode } from "json2typescript";
+import { Listing } from "../model/Listing";
 
 export class FlatmatesClient {
     private static instance: FlatmatesClient
     private static session: string
     private static secret: string
+    private static jsonConverter: JsonConvert
+    
 
     /**
      * Private constructor. FlatmatesClient should be created with FlatmatesClient.create()
      */
     private constructor() {
+        FlatmatesClient.jsonConverter = new JsonConvert();
+        //jsonConvert.operationMode = OperationMode.LOGGING; // print some debug data
+        FlatmatesClient.jsonConverter.ignorePrimitiveChecks = false; // don't allow assigning number to string etc.
+        FlatmatesClient.jsonConverter.valueCheckingMode = ValueCheckingMode.DISALLOW_NULL; // never allow null
     }
 
     static getInstance() {
@@ -120,11 +130,23 @@ export class FlatmatesClient {
         return flatmatesListings.map(FlatmatesClient.normaliseListing)
     }
 
-    private static normaliseListing(listing: any) {
-        return listing
-        // return Listing(id, head + subheading, "flatmates", "share",
-        //                latitude, longitiude, "", rent, null, null, null,
-        //                 "flatmates.com.au" + listing_link, photo)
+    private static normaliseListing(listing: any): Listing {
+        const cdmListing = {
+            "id":           listing.id.toString(),
+            "title":        format("%s. %s", listing.head, listing.subheading),
+            "source":       "flatmates",
+            "listingType":  "share",
+            "lat":          listing.latitude,
+            "lon":          listing.longitude,
+            "price":        listing.rent,
+            "address":      "",
+            "bedrooms":     NaN,
+            "bathrooms":    NaN,
+            "carspaces":    NaN,
+            "listingUrl":   "www.flatmates.com.au" + listing.listing_link,
+            "imageUrl":     listing.photo,
+        }
+        return FlatmatesClient.jsonConverter.deserialize(cdmListing, Listing)
     }
 
     private static async mapMarkersApi(reqBody: any) {

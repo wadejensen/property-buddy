@@ -1,5 +1,5 @@
 import {FlatmatesClient} from "./FlatmatesClient"
-import DomainClient from "./DomainClient"
+import {DomainClient} from "./DomainClient"
 import RealestateClient from "./RealestateClient"
 
 import DomainListingRequestBody from "../model/domain/DomainListingRequestBody"
@@ -30,32 +30,34 @@ export async function InitApiClients() {
     }
 
     // //console.dir(app)
-    // let domainClient = new DomainClient()
+    let domainClient = new DomainClient()
     
-    // let opts = {
-    //     lat1: -33.878453691548835,
-    //    lon1: 151.16001704415282,
-    //    lat2: -33.9073077343513,
-    //    lon2: 151.217280974777,
-    //    listingType: "Rent", // valid fields: 'buy', 'rent', 'share'
-    //    minBed: null,
-    //    maxBed: null,
-    //    minBath: null,
-    //    maxBath: null,
-    //    minCar: null,
-    //    maxCar: null,
-    //    minPrice: 100,
-    //    maxPrice: 20000,
-    //    //Page: //TODO
-    //    //PageSize: //TODO
+    let opts = {
+       lat1: -33.878453691548835,
+       lon1: 151.16001704415282,
+       lat2: -33.9073077343513,
+       lon2: 151.217280974777,
+       listingType: "Rent", // valid fields: 'buy', 'rent', 'share'
+       minBed: null,
+       maxBed: null,
+       minBath: null,
+       maxBath: null,
+       minCar: null,
+       maxCar: null,
+       minPrice: 100,
+       maxPrice: 20000,
+       //Page: //TODO
+       //PageSize: //TODO
+    }
+
+    reqBody = new DomainListingRequestBody(opts)
+
+    const json = await domainClient.GetListings(reqBody)
+    
+    console.log(json)
+    // for ( node in json) {
+    //     console.log(node)
     // }
-
-    // reqBody = new DomainListingRequestBody(opts)
-
-    // var json = await domainClient.getListings(reqBody)
-    // // for ( node in json) {
-    // //     console.log(node)
-    // // }
 
     // let realestateClient =  new RealestateClient()
 
