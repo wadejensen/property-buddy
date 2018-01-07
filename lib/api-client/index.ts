@@ -1,6 +1,6 @@
 import {FlatmatesClient} from "./FlatmatesClient"
 import {DomainClient} from "./DomainClient"
-import RealestateClient from "./RealestateClient"
+import {RealestateClient} from "./RealestateClient"
 
 import DomainListingRequestBody from "../model/domain/DomainListingRequestBody"
 
@@ -19,9 +19,9 @@ export async function InitApiClients() {
                     "bottom_right":"-33.90481527152859,151.2626705475708"
                 }
         }
-    
-        let data: any = await FlatmatesClient.GetListings(reqBody)
-        console.log(data)
+        // DISABLE SEARCH DURING DEV SO FLATMATES DOESN'T GET CLUEY
+        // let data: any = await FlatmatesClient.GetListings(reqBody)
+        // console.log(data)
     }
     catch (e) {
         console.log("Could not create flatmates.com.au API client.")
@@ -52,29 +52,27 @@ export async function InitApiClients() {
 
     reqBody = new DomainListingRequestBody(opts)
 
-    const json = await domainClient.GetListings(reqBody)
-    
-    console.log(json)
-    // for ( node in json) {
-    //     console.log(node)
-    // }
-
-    // let realestateClient =  new RealestateClient()
-
-    // reqBody = {
-    //     "channel": "rent",
-    //     "filters": {
-    //         "surroundingSuburbs": "true",
-    //         "excludeTier2": "true",
-    //         "geoPrecision": "address",
-    //         "excludeAddressHidden": "true"
-    //     },
-    //     "boundingBoxSearch": [-33.92398881477445, 151.18771071506796, -33.92047668262983, 151.19207198692618],
-    //     "pageSize": "20"
-    // }
-
-    // json = await realestateClient.getListings(reqBody)
+    //DISABLE SEARCH DURING DEV SO DOMAIN DOESN'T GET CLUEY
+    // const json = await domainClient.GetListings(reqBody)
     // console.log(json)
+
+    let realestateClient =  new RealestateClient()
+
+    reqBody = {
+        "channel": "rent",
+        "filters": {
+            "surroundingSuburbs": "true",
+            "excludeTier2": "true",
+            "geoPrecision": "address",
+            "excludeAddressHidden": "true"
+        },
+        "boundingBoxSearch": [-33.984913591070864,151.04657031914064,-33.754297399013396,151.3734135808594], // Sydney extremely wide
+        //Banora point wide (45 results) [-28.239932882506825,153.4733160680663,-28.178743144078663,153.555026883496],
+        "pageSize": "100" // 200 seems to be the max returned
+    }
+
+    let json: any = await realestateClient.GetListings(reqBody)
+    console.log(json)
     // let x = 5 + 10
     // let y = x * 7
 }

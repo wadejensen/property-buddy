@@ -14,7 +14,7 @@ export class DomainClient {
         DomainClient.jsonConverter.valueCheckingMode = ValueCheckingMode.DISALLOW_NULL; // never allow null
     }
     
-    async GetListings(domainListingRequestBody: any) {
+    async GetListings(domainListingRequestBody: any): Promise<[Listing]> {
         const data = await this.getListingsApiCall(domainListingRequestBody)
         if (data.CurrentResultCount === data.TotalResultCount) {
             return this.flattenListingData(data)
@@ -22,7 +22,7 @@ export class DomainClient {
 
         // temporary for testing
         const domainListings: [any] = this.flattenListingData(data)
-        const listings = domainListings.map(this.normaliseListing)
+        const listings = <[Listing]> domainListings.map(this.normaliseListing)
 
         return listings
     }
@@ -55,16 +55,8 @@ export class DomainClient {
             "listingUrl":   dmnListing.ListingUrl || "",
             "imageUrl":     dmnListing.ImageUrl || "",
         }
-        let listing: Listing
-        try {
-            listing = DomainClient.jsonConverter.deserialize(cdmListing, Listing)
-            return listing
-        }
-        catch (e) {
-            console.log(cdmListing)
-            console.error(e)
-        }
-        return new Listing()
+        let listing: Listing = DomainClient.jsonConverter.deserialize(cdmListing, Listing)
+        return listing
     }
 
     // If the search area were divided evenly into a grid, granularity is 
