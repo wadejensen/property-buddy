@@ -71,8 +71,8 @@ export async function InitApiClients() {
         "pageSize": "100" // 200 seems to be the max returned
     }
 
-    let json: any = await realestateClient.GetListings(reqBody)
-    console.log(json)
+    // let json: any = await realestateClient.GetListings(reqBody)
+    // console.log(json)
     // let x = 5 + 10
     // let y = x * 7
 }
