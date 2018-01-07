@@ -20,7 +20,7 @@ export class FlatmatesClient {
      */
     private constructor() {
         FlatmatesClient.jsonConverter = new JsonConvert();
-        //jsonConvert.operationMode = OperationMode.LOGGING; // print some debug data
+        //FlatmatesClient.jsonConverter.operationMode = OperationMode.LOGGING; // print some debug data
         FlatmatesClient.jsonConverter.ignorePrimitiveChecks = false; // don't allow assigning number to string etc.
         FlatmatesClient.jsonConverter.valueCheckingMode = ValueCheckingMode.DISALLOW_NULL; // never allow null
     }
@@ -123,30 +123,32 @@ export class FlatmatesClient {
 //         }
 //     }
 
-    static async GetListings(listingSearchOpts: any) {
+    static async GetListings(listingSearchOpts: any): Promise<[Listing]> {
         const data: any = await FlatmatesClient.mapMarkersApi(listingSearchOpts)
         const flatmatesListings: any = data.matches
-
-        return flatmatesListings.map(FlatmatesClient.normaliseListing)
+        const listing: [Listing] = flatmatesListings.map(FlatmatesClient.normaliseListing)
+        return listing
     }
 
-    private static normaliseListing(listing: any): Listing {
+    private static normaliseListing(fmListing: any): Listing {
+        // Convert Flatmates listing to core data model Listing type
         const cdmListing = {
-            "id":           listing.id.toString(),
-            "title":        format("%s. %s", listing.head, listing.subheading),
+            "id":           fmListing.id.toString() || "",
+            "title":        format("%s. %s", fmListing.head, fmListing.subheading) || "",
             "source":       "flatmates",
             "listingType":  "share",
-            "lat":          listing.latitude,
-            "lon":          listing.longitude,
-            "price":        listing.rent,
+            "lat":          fmListing.latitude || NaN,
+            "lon":          fmListing.longitude || NaN,
+            "price":        fmListing.rent || NaN,
             "address":      "",
             "bedrooms":     NaN,
             "bathrooms":    NaN,
             "carspaces":    NaN,
-            "listingUrl":   "www.flatmates.com.au" + listing.listing_link,
-            "imageUrl":     listing.photo,
+            "listingUrl":   "www.flatmates.com.au" + fmListing.listing_link,
+            "imageUrl":     fmListing.photo || "",
         }
-        return FlatmatesClient.jsonConverter.deserialize(cdmListing, Listing)
+        const listing: Listing = FlatmatesClient.jsonConverter.deserialize(cdmListing, Listing)
+        return listing
     }
 
     private static async mapMarkersApi(reqBody: any) {

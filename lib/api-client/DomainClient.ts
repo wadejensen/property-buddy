@@ -1,20 +1,70 @@
 import fetch, {Response} from "node-fetch"
 import * as Express from "express"
+import { Listing } from "../model/Listing";
+import { ValueCheckingMode, JsonConvert } from "json2typescript";
+import { format } from "util";
 
 export class DomainClient {
+    private static jsonConverter: JsonConvert
+
+    constructor() {
+        DomainClient.jsonConverter = new JsonConvert();
+        //this.jsonConverter.operationMode = OperationMode.LOGGING; // print some debug data
+        DomainClient.jsonConverter.ignorePrimitiveChecks = false; // don't allow assigning number to string etc.
+        DomainClient.jsonConverter.valueCheckingMode = ValueCheckingMode.DISALLOW_NULL; // never allow null
+    }
+    
     async GetListings(domainListingRequestBody: any) {
-        
-        
-        this.getListingsApiCall(domainListingRequestBody)
-        
-        
+        const data = await this.getListingsApiCall(domainListingRequestBody)
+        if (data.CurrentResultCount === data.TotalResultCount) {
+            return this.flattenListingData(data)
+        }
 
+        // temporary for testing
+        const domainListings: [any] = this.flattenListingData(data)
+        const listings = domainListings.map(this.normaliseListing)
 
+        return listings
+    }
 
-        if (data.CurrentResultCount < data.TotalResultCount)
-        //console.log(json);
+    flattenListingData(data: any): [any] {
+        // Reshape data to more convenient format
+        let listingGroups = <[any]> data.ListingGroups
+        let domainListings: [any] = 
+            listingGroups
+                .map( (elem: any) => elem.Listings )
+                .reduce( (acc: [any], listingArray: [any]) => acc.concat(listingArray))
+        
+        return domainListings
+    }
 
-        return {} //this.processDomainListing(json)
+    normaliseListing(dmnListing: any): Listing {
+        // Convert Domain listing to core data model Listing type
+        const cdmListing = {
+            "id":           dmnListing.Id.toString() || "",
+            "title":        dmnListing.Headline  || "",
+            "source":       "domain",
+            "listingType":  "",
+            "lat":          dmnListing.MapLat || NaN,
+            "lon":          dmnListing.MapLong || NaN,
+            "price":        [NaN] || NaN,
+            "address":      dmnListing.Address || "",
+            "bedrooms":     parseInt(dmnListing.Bedrooms) || NaN,
+            "bathrooms":    parseInt(dmnListing.Bathrooms) || NaN,
+            "carspaces":    parseInt(dmnListing.Carspaces) || NaN,
+            "listingUrl":   dmnListing.ListingUrl || "",
+            "imageUrl":     dmnListing.ImageUrl || "",
+        }
+        let listing: Listing
+        try {
+            listing = DomainClient.jsonConverter.deserialize(cdmListing, Listing)
+            return listing
+        }
+        catch (e) {
+            console.log(cdmListing)
+            console.error(e)
+        }
+        return new Listing()
     }
 
     // If the search area were divided evenly into a grid, granularity is 
@@ -50,13 +100,13 @@ export class DomainClient {
         return searchResults
     }
 
-    async getListingsApiCall(domainListingRequestBody) {
+    async getListingsApiCall(domainListingRequestBody: any): Promise<any> {
         const url = "https://www.domain.com.au/mvc/MarkersJson?"
         const resp: Response = await this.httpPost(url, domainListingRequestBody)
         if ( resp.status !== 200 ) {
             throw Error('domain.com.au markers API responded with HTTP code: ' + resp.status)
         }
-        const data: any = await resp.json()
+        return await resp.json()
     }
 
     async httpPost(url: string, reqBody: any): Promise<Response> {
