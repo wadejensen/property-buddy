@@ -13,6 +13,16 @@
             "sourceMaps": true,
             "cwd": "${workspaceRoot}",
             "protocol": "inspector",
-        }
+        },
+        {
+            "name": "mocha",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
+            "args": ["-r", "ts-node/register", "${workspaceRoot}/test/TestAll.ts"],
+            "cwd": "${workspaceRoot}",
+            "protocol": "inspector",
+            "internalConsoleOptions": "openOnSessionStart"
+        },
     ]
 }

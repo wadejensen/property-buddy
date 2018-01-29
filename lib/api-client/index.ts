@@ -20,8 +20,8 @@ export async function InitApiClients() {
                 }
         }
         // DISABLE SEARCH DURING DEV SO FLATMATES DOESN'T GET CLUEY
-        // let data: any = await FlatmatesClient.GetListings(reqBody)
-        // console.log(data)
+        let data: any = await FlatmatesClient.GetListings(reqBody)
+        console.log(data)
     }
     catch (e) {
         console.log("Could not create flatmates.com.au API client.")

@@ -6,24 +6,12 @@ import { Server } from "./Server"
 import {JsonConvert, OperationMode, ValueCheckingMode} from "json2typescript"
 import { Listing } from "./model/Listing";
 
-let app = express()
-
-// Get around ZScaler transparent proxy. Do not do this in prod
+// Lazy way to get around ZScaler transparent proxy. Do not do this in prod.
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"
-
-const greeting: string = "Hello World"
-
-console.error(greeting)
 
 let server = new Server(3000)
 
-let x = function(req: Express.Request, res: Express.Response): number {
-    console.log("hello world")
-    return 50
-}
-
 server.addHttpGetEndpoint("/testListing", function(req: Express.Request, res: Express.Response) {
-
     let rawJson: any = 
     {
         "head":"Newtown, Sydney",

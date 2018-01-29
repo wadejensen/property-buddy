@@ -10,11 +10,10 @@ import { Listing } from "../model/Listing";
 
 export class FlatmatesClient {
     private static instance: FlatmatesClient
-    private static session: string
-    private static secret: string
+    static session: string
+    static secret: string
     private static jsonConverter: JsonConvert
     
-
     /**
      * Private constructor. FlatmatesClient should be created with FlatmatesClient.create()
      */
