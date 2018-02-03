@@ -7,6 +7,7 @@ import {format} from "util"
 
 import { JsonConvert, ValueCheckingMode } from "json2typescript";
 import { Listing } from "../model/Listing";
+import {FlatmatesAutocompletePoi} from "../model/flatmates/FlatmatesAutocompletePoi"
 
 export class FlatmatesClient {
     private static instance: FlatmatesClient
@@ -36,10 +37,10 @@ export class FlatmatesClient {
      */
     static async Init(): Promise<FlatmatesClient> {
         let client = new FlatmatesClient()
-        return await client.Auth()
+        return await client.auth()
     }
 
-    async Auth(): Promise<FlatmatesClient> {
+    async auth(): Promise<FlatmatesClient> {
         let resp: Response = await fetch('https://flatmates.com.au/')
         
         FlatmatesClient.session = await this.extractSessionToken(resp)
@@ -79,48 +80,38 @@ export class FlatmatesClient {
         }
     }
 
-//      /**
-//       * Perform an api call to get suburb location and POI autocomplete from flatmates.com.au.
-//       * POIs : suburb, city, university, tram_stop, train_station
-//      */
-//     async autocomplete(input) {
-//         const url = 'https://flatmates.com.au/autocomplete'
+     /**
+      * Perform an api call to get suburb location and POI autocomplete from flatmates.com.au.
+      * POIs : suburb, city, university, tram_stop, train_station
+     */
+    static async Autocomplete(userInput: String) {
+        const url = 'https://flatmates.com.au/autocomplete'
 
-//         const reqBody = {
-//             "location_suggest":{
-//                 "text": input,
-//                 "completion":{
-//                     "field":"suggest",
-//                     "size":input.length,
-//                     "fuzzy":{"fuzziness":"AUTO"},
-//                     "contexts": {
-//                         "location_type":["suburb","city","university","tram_stop","train_station"]
-//                     }
-//                 }
-//             }
-//         }
-//         try {
-//             let resp = await this.httpPost(url, reqBody)
-//              if ( resp.status !== '200' ) {
-//                  throw Error('flatmates.com.au autocomplete API responded with HTTP code: ' + resp.status)
-//              }
-//              const json = await resp.json()
+        const reqBody: any = {
+            "location_suggest":{
+                "text": userInput,
+                "completion":{
+                    "field":"suggest",
+                    "size": 5,
+                    "fuzzy":{"fuzziness":"AUTO"},
+                    "contexts": {
+                        "location_type":["suburb","city","university","tram_stop","train_station"]
+                    }
+                }
+            }
+        }
 
-//              let resultsList = []
-//              if(!json.suggest.location_suggest[0].options) {
-//                  throw Error('flatmates.com.au autocomplete API has changed.')
-//              }
-//              json.suggest.location_suggest[0].options.forEach(
-//                  rawResult => resultsList.push(rawResult._source)
-//              )
-
-//              return resultsList
-//         }
-//         catch (e) {
-//             console.log(e)
-//             console.log('Request to flatmates.com.au autocomplete API failed.')
-//         }
-//     }
+        let resp = await FlatmatesClient.httpPost(url, reqBody)
+        if ( resp.status !== 200 ) {
+            throw Error('flatmates.com.au autocomplete API responded with HTTP code: ' + resp.status)
+        }
+        const suggestionJson = await resp.json()
+        // Black magic indexing into JSON response
+        const suggestions = suggestionJson.suggest.location_suggest[0].options
+        return suggestions.map( (poi: any) => 
+            new FlatmatesAutocompletePoi( poi.text, poi._source.search_title, poi._source.short_title, 
+                                          poi._source.latitude, poi._source.longitude ) )
+    }
 
     static async GetListings(listingSearchOpts: any): Promise<[Listing]> {
         const data: any = await FlatmatesClient.mapMarkersApi(listingSearchOpts)
@@ -176,9 +167,9 @@ export class FlatmatesClient {
         }
     }
 
-    async httpPost(url: string, reqBody: string) {
+    private static async httpPost(url: string, reqBody: string) {
         const headers = {
-            'Content-Type': 'application/jsoncharset=UTF-8',
+            'Content-Type': 'application/json;charset=UTF-8',
             'Accept': 'application/json',
             //'Accept-Encoding': 'gzip,deflate'
         }

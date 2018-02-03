@@ -17,7 +17,7 @@ export class Server {
         this.app.listen(port, function() {
             console.log(util.format('listening on port %d', port));
         })
-               
+
         //configure application
         this.config();
       
