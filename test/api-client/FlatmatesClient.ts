@@ -4,10 +4,10 @@ import "mocha"
 
 import { format } from "util";
 
-
-import {sleep} from "../sleep"
+import {sleep} from "../../lib/sleep"
 import { Listing } from "../../lib/model/Listing";
-import { FlatmatesAutocompletePoi } from "../../lib/model/flatmates/FlatmatesAutocompletePoi";
+import { FlatmatesAutocompletePoi } from "../../lib/model/flatmates/FlatmatesAutocompletePoi"
+import { FlatmatesGetListingsRequestBody } from "../../lib/model/flatmates/FlatmatesGetListingsRequestBody"
 
 describe('FlatmatesClient named constructor', async function() {
   this.timeout(5000)
@@ -34,26 +34,12 @@ describe('FlatmatesClient named constructor', async function() {
 
     // Add some fuzziness so I'm not always making the same API call and getting tracked by Flatmates
     let fuzziness = Math.random() * 0.01
-    const topLeftLat = -33.878453691548835 + fuzziness
-    const topLeftLon = 151.16001704415282 + fuzziness
-    const bottomRightLat = -33.90481527152859 - fuzziness
-    const bottomRightLon = 151.2626705475708 - fuzziness
+    const lat1 = -33.878281 + fuzziness
+    const lon1 = 151.196689 + fuzziness
+    const lat2 = -33.893458 - fuzziness
+    const lon2 = 151.217589 - fuzziness
 
-    const topLeft = format("%s, %s", topLeftLat, topLeftLon)
-    const bottomRight = format("%s, %s", bottomRightLat, bottomRightLon)
-
-    var reqBody: any = {
-      "search":
-          {
-              "mode":"rooms",
-              "min_budget":100,
-              "max_budget":2000,
-              // A decent chuck of inner Sydney, Australia
-              "top_left": topLeft,
-              "bottom_right": bottomRight
-          }
-    }
-    let data: any = await FlatmatesClient.GetListings(reqBody)
+    let data: any = await FlatmatesClient.GetListings(lat1, lon1, lat2, lon2, "rooms", 100, 2000)
     
     // Check some valid listings were returned
     const listingsCount = data.length
@@ -81,6 +67,72 @@ describe('FlatmatesClient named constructor', async function() {
   })
 })
 
+describe('Flatmates.GetListings response over ~10km input area', async function() {
+  this.timeout(5000)
+  it('Should return a response with more than 1000 Listings.', async () => {
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"
+    
+    // Avoid spamming flatmates.com.au too quickly
+    sleep(1500)
+
+    await FlatmatesClient.Init()
+
+    // Add some fuzziness so I'm not always making the same API call and getting tracked by Flatmates
+    let fuzziness = Math.random() * 0.01
+    const lat1 = -33.868453691548835 + fuzziness
+    const lon1 = 151.15001704415282 + fuzziness
+    const lat2 = -33.91481527152859 - fuzziness
+    const lon2 = 151.2726705475708 - fuzziness
+
+    let data: any = await FlatmatesClient.GetListings(lat1, lon1, lat2, lon2, "rooms", 100, 2000)
+    expect(data.length).to.be.greaterThan(1000)
+  })
+})
+
+describe('Flatmates.GetListings response over ~50km input area', async function() {
+  this.timeout(10000)
+  it('Should return a response with much more than 1000 Listings.', async () => {
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"
+    
+    // Avoid spamming flatmates.com.au too quickly
+    sleep(1500)
+
+    await FlatmatesClient.Init()
+
+    // Add some fuzziness so I'm not always making the same API call and getting tracked by Flatmates
+    let fuzziness = Math.random() * 0.01
+    const lat1 = -33.88453691548835 + fuzziness
+    const lon1 = 151.14001704415282 + fuzziness
+    const lat2 = -33.92481527152859 - fuzziness
+    const lon2 = 151.2826705475708 - fuzziness
+
+    let data: any = await FlatmatesClient.GetListings(lat1, lon1, lat2, lon2, "rooms", 100, 2000)
+    expect(data.length).to.be.greaterThan(1000)
+  })
+})
+
+/** Disabled except for serious testing **/
+// describe('Flatmates.GetListings response over ~100km input area', async function() {
+//   this.timeout(10000)
+//   it('Should return a response with much more than 1000 Listings.', async () => {
+//     process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"
+    
+//     // Avoid spamming flatmates.com.au too quickly
+//     sleep(1500)
+
+//     await FlatmatesClient.Init()
+
+//     // Add some fuzziness so I'm not always making the same API call and getting tracked by Flatmates
+//     let fuzziness = Math.random() * 0.01
+//     const lat1 = -33.70453691548835 + fuzziness
+//     const lon1 = 151.00001704415282 + fuzziness
+//     const lat2 = -34.10481527152859 - fuzziness
+//     const lon2 = 151.4226705475708 - fuzziness
+
+//     let data: any = await FlatmatesClient.GetListings(lat1, lon1, lat2, lon2, "rooms", 100, 2000)
+//     expect(data.length).to.be.greaterThan(1000)
+//   })
+// })
 
 describe('FlatmatesClient autocomplete API', async function() {
   this.timeout(5000)
@@ -99,8 +151,8 @@ describe('FlatmatesClient autocomplete API', async function() {
           shortTitle:"Redfern, 2016"
         },
         {
-          lat:-33.89334,
-          lon:151.20461,
+          lat:-33.8955279,
+          lon:151.1973037,
           longTitle:"Redfern, Sydney, NSW, 2015",
           name:"Redfern",
           shortTitle:"Redfern, 2015"
