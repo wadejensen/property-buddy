@@ -1,14 +1,18 @@
-import { hello } from "../lib/test" 
 import { expect } from 'chai'
 import 'mocha'
 
 import fetch from "node-fetch"
-import { sleep } from "./sleep";
+import {sleep} from "../lib/sleep"
 
+// import {Widget} from "../lib/mixture"
+
+// let x = new Widget()
+// x.dispose()
+// x.activate()
 
 describe('Mocha testing framework', () => {
   it('Should run a test suite.', () => {
-    const result = hello();
+    const result = "Hello world!"
     expect(result).to.equal('Hello world!')
   });
 });
@@ -25,7 +29,7 @@ describe('Do we have network access?', function() {
 require("./TestServer")
 sleep(3000)
 require("./api-client/FlatmatesClient")
-
+require("./TestGeoUtils")
 // require("./api-client/")
 // require("./model/")
 // require("./routes/")

@@ -20,7 +20,7 @@ export async function InitApiClients() {
                 }
         }
         // DISABLE SEARCH DURING DEV SO FLATMATES DOESN'T GET CLUEY
-        let data: any = await FlatmatesClient.GetListings(reqBody)
+        //let data: any = await FlatmatesClient.GetListings(reqBody)
         console.log(data)
     }
     catch (e) {
