@@ -4,10 +4,14 @@ import {promisify} from 'typed-promisify'
 import * as xmljs from "xml2js"
 
 import {format} from "util"
+import {sleep} from "../sleep"
 
 import { JsonConvert, ValueCheckingMode } from "json2typescript";
 import { Listing } from "../model/Listing";
 import {FlatmatesAutocompletePoi} from "../model/flatmates/FlatmatesAutocompletePoi"
+import { FlatmatesGetListingsRequestBody } from "../model/flatmates/FlatmatesGetListingsRequestBody";
+import { GeoUtils } from "./GeoUtils";
+import { Rectangle } from "../geoutils/GeoUtils";
 
 export class FlatmatesClient {
     private static instance: FlatmatesClient
@@ -26,7 +30,7 @@ export class FlatmatesClient {
     }
 
     static getInstance() {
-        if (this.instance === null || this.instance === undefined) {
+        if (! this.instance) {
             this.instance = new FlatmatesClient();
         }
         return this.instance;
@@ -113,38 +117,48 @@ export class FlatmatesClient {
                                           poi._source.latitude, poi._source.longitude ) )
     }
 
-    static async GetListings(listingSearchOpts: any): Promise<[Listing]> {
-        const data: any = await FlatmatesClient.mapMarkersApi(listingSearchOpts)
-        const flatmatesListings: any = data.matches
-        const listing: [Listing] = flatmatesListings.map(FlatmatesClient.normaliseListing)
-        return listing
+    static async GetListings(lat1: number, lon1: number, lat2: number, lon2: number,
+                             mode: string, minPrice: number, maxPrice: number): Promise<[Listing]> {
+        
+        let area = new Rectangle(lon1, lat1, lon2, lat2)
+        let getListings = async function(area: Rectangle) {
+            let listings = FlatmatesClient.mapMarkersApi(area, mode, minPrice, maxPrice)
+            sleep(300) // Don't want to DDoS Flatmates
+            return listings
+        }
+        let greaterThanOrEqualTo1000 = (results: [any]) => results.length >= 1000
+        
+        return GeoUtils.RecurseSearch([{}], area, getListings, greaterThanOrEqualTo1000 )
     }
 
-    private static normaliseListing(fmListing: any): Listing {
+    private static convertToListing(flatmatesListing: any): Listing {
         // Convert Flatmates listing to core data model Listing type
         const cdmListing = {
-            "id":           fmListing.id.toString() || "",
-            "title":        format("%s. %s", fmListing.head, fmListing.subheading) || "",
+            "id":           flatmatesListing.id.toString() || "",
+            "title":        format("%s. %s", flatmatesListing.head, flatmatesListing.subheading) || "",
             "source":       "flatmates",
             "listingType":  "share",
-            "lat":          fmListing.latitude || NaN,
-            "lon":          fmListing.longitude || NaN,
-            "price":        fmListing.rent || NaN,
+            "lat":          flatmatesListing.latitude || NaN,
+            "lon":          flatmatesListing.longitude || NaN,
+            "price":        flatmatesListing.rent || NaN,
             "address":      "",
             "bedrooms":     NaN,
             "bathrooms":    NaN,
             "carspaces":    NaN,
-            "listingUrl":   "www.flatmates.com.au" + fmListing.listing_link,
-            "imageUrl":     fmListing.photo || "",
+            "listingUrl":   "www.flatmates.com.au" + flatmatesListing.listing_link,
+            "imageUrl":     flatmatesListing.photo || "",
         }
         const listing: Listing = FlatmatesClient.jsonConverter.deserialize(cdmListing, Listing)
         return listing
     }
 
-    private static async mapMarkersApi(reqBody: any) {
+    private static async mapMarkersApi(area: Rectangle, mode: string, 
+                                       minPrice: number, maxPrice: number): Promise<[Listing]> {
         const url = 'https://flatmates.com.au/map_markers'
+        let reqBody = new FlatmatesGetListingsRequestBody(area.ymax, area.xmin, area.ymin, area.xmax, 
+                                                          mode, minPrice, maxPrice)
+        
         const http_promise = require('request-promise')
-
         const options = {
             method: 'POST',
             uri: 'https://flatmates.com.au/map_markers',
@@ -159,7 +173,9 @@ export class FlatmatesClient {
         }
 
         try {
-            return await http_promise(options).then( (body: any) => JSON.parse(body) )
+            let data = await http_promise(options).then( (body: any) => JSON.parse(body) )
+            let flatmatesListings: any = data.matches
+            return await flatmatesListings.map(FlatmatesClient.convertToListing)
         }
         catch (err) {
             console.log(err)
